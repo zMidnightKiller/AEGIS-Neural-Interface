@@ -121,6 +121,7 @@ Cada passo deve ser claro, independente e passível de execução por uma das fe
 
 FORMATO DE SAÍDA:
 Responda com uma lista numerada de passos.
+"""
 
 COMPRESSION_PROMPT = """
 Você é o Orquestrador de Compressão do AEGIS. Sua tarefa é resumir o histórico de conversas acima em um resumo denso, mantendo todos os fatos, decisões e contextos técnicos importantes.
