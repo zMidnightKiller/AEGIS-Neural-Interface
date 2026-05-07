@@ -10,7 +10,7 @@ import json
 import re
 import structlog
 from typing import Any, List, Optional
-from anthropic import AsyncAnthropic
+from aegis.core.llm import LLMClient
 
 from aegis.agents.base import BaseAgent, AgentResult
 from aegis.core.context import Context
@@ -67,11 +67,9 @@ class CodeAgent(BaseAgent):
     description: str = "Especialista em programacao, execucao de codigo e gestao de arquivos/repositorios."
     max_steps: int = 10  # Code tasks can be complex
 
-    def __init__(self, anthropic_client: Optional[AsyncAnthropic] = None):
+    def __init__(self, llm_client: Optional[LLMClient] = None):
         self.settings = get_settings()
-        self.anthropic_client = anthropic_client or AsyncAnthropic(
-            api_key=self.settings.ANTHROPIC_API_KEY.get_secret_value()
-        )
+        self.anthropic_client = llm_client or LLMClient()
         self._tools = {
             "run_code": RunCodeTool(),
             "file_system": FileSystemTool(),

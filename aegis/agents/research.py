@@ -11,7 +11,7 @@ import re
 import structlog
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
-from anthropic import AsyncAnthropic
+from aegis.core.llm import LLMClient
 
 from aegis.agents.base import BaseAgent, AgentResult
 from aegis.core.context import Context
@@ -88,11 +88,9 @@ class ResearchAgent(BaseAgent):
     description: str = "Realiza pesquisas profundas na web para responder perguntas complexas ou factuais."
     max_steps: int = 5
 
-    def __init__(self, anthropic_client: Optional[AsyncAnthropic] = None):
+    def __init__(self, llm_client: Optional[LLMClient] = None):
         self.settings = get_settings()
-        self.anthropic_client = anthropic_client or AsyncAnthropic(
-            api_key=self.settings.ANTHROPIC_API_KEY.get_secret_value()
-        )
+        self.anthropic_client = llm_client or LLMClient()
 
     def get_tools(self) -> list[BaseTool]:
         """Retorna as ferramentas de busca e extração."""

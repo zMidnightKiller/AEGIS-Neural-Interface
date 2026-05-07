@@ -10,7 +10,7 @@ import json
 import re
 import structlog
 from typing import Any, List, Optional
-from anthropic import AsyncAnthropic
+from aegis.core.llm import LLMClient
 
 from aegis.agents.base import BaseAgent, AgentResult
 from aegis.core.context import Context
@@ -65,11 +65,9 @@ class TaskAgent(BaseAgent):
     description: str = "Gerencia compromissos no calendário, envia e-mails e organiza tarefas do usuário."
     max_steps: int = 5
 
-    def __init__(self, anthropic_client: Optional[AsyncAnthropic] = None):
+    def __init__(self, llm_client: Optional[LLMClient] = None):
         self.settings = get_settings()
-        self.anthropic_client = anthropic_client or AsyncAnthropic(
-            api_key=self.settings.ANTHROPIC_API_KEY.get_secret_value()
-        )
+        self.anthropic_client = llm_client or LLMClient()
         self._tools = {
             "calendar": CalendarTool(),
             "email": EmailTool()

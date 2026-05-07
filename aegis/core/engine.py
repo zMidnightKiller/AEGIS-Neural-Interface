@@ -32,7 +32,7 @@ from aegis.personality.prompts import (
     DECOMPOSITION_PROMPT,
     COMPRESSION_PROMPT
 )
-from anthropic import AsyncAnthropic
+from aegis.core.llm import LLMClient
 import json
 
 logger = structlog.get_logger(__name__)
@@ -60,7 +60,7 @@ class Engine:
             "code": CodeAgent(),
         }
         self.orchestrator = MultiAgentOrchestrator()
-        self.llm_client = AsyncAnthropic(api_key=self.settings.ANTHROPIC_API_KEY.get_secret_value())
+        self.llm_client = LLMClient()
         self.cache = SemanticCache()
         self.plugin_manager = PluginManager()
         self._initialized = False
@@ -259,13 +259,13 @@ class Engine:
         
         # 1. Decomposicao
         try:
-            decomposition_resp = await self.llm_client.messages.create(
-                model="claude-3-haiku-20240307",
+            decomposition_text = await self.llm_client.create_message(
+                model="claude-3-haiku-20240307", # Ignorado se provider for Ollama
                 max_tokens=500,
                 system=DECOMPOSITION_PROMPT,
                 messages=[{"role": "user", "content": user_input.text}]
             )
-            subtasks = json.loads(decomposition_resp.content[0].text)
+            subtasks = json.loads(decomposition_text)
         except Exception as e:
             logger.error("engine.decomposition_failed", error=str(e))
             return f"Erro ao decompor tarefa: {str(e)}", []
@@ -309,7 +309,7 @@ class Engine:
             memory_context=memory_context
         )
         
-        response = await self.llm_client.messages.create(
+        response_text = await self.llm_client.create_message(
             model="claude-3-sonnet-20240229",
             max_tokens=2000,
             system=system_prompt,
@@ -318,20 +318,20 @@ class Engine:
                 for m in context.messages if m.role != "system"
             ]
         )
-        return response.content[0].text
+        return response_text
 
     async def _classify_intent(self, text: str) -> str:
         """
         Classifica a intencao do usuario usando LLM.
         """
         try:
-            response = await self.llm_client.messages.create(
+            intent_text = await self.llm_client.create_message(
                 model="claude-3-haiku-20240307",
                 max_tokens=20,
                 system=CLASSIFIER_PROMPT,
                 messages=[{"role": "user", "content": text}]
             )
-            intent = response.content[0].text.strip().lower()
+            intent = intent_text.strip().lower()
             
             # Limpeza basica (caso o LLM retorne algo extra)
             for valid_intent in ["research", "media", "task", "code", "multi", "core_engine"]:
@@ -358,13 +358,12 @@ class Engine:
         text_to_summarize = "\n".join([f"{m.role}: {m.content}" for m in messages_to_compress])
         
         try:
-            response = await self.llm_client.messages.create(
+            summary = await self.llm_client.create_message(
                 model="claude-3-haiku-20240307",
                 max_tokens=500,
                 system=COMPRESSION_PROMPT,
                 messages=[{"role": "user", "content": text_to_summarize}]
             )
-            summary = response.content[0].text
             context.compress(summary, len(messages_to_compress))
         except Exception as e:
             logger.error("engine.compression_failed", error=str(e))

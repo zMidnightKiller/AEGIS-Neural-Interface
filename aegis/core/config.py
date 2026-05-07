@@ -35,8 +35,13 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["development", "production", "test"] = "development"
     LOG_LEVEL: str = "INFO"
 
-    # --- API KEYS (Required) ---
-    ANTHROPIC_API_KEY: SecretStr = Field(..., description="Chave da API Anthropic para o Claude")
+    # --- LLM PROVISIONING ---
+    AEGIS_LLM_PROVIDER: Literal["anthropic", "ollama"] = "ollama"
+    AEGIS_MODEL_NAME: str = "llama3"
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+
+    # --- API KEYS ---
+    ANTHROPIC_API_KEY: Optional[SecretStr] = Field(None, description="Chave da API Anthropic para o Claude")
     OPENAI_API_KEY: Optional[SecretStr] = None
     TAVILY_API_KEY: Optional[SecretStr] = None
     ELEVENLABS_API_KEY: Optional[SecretStr] = None
@@ -87,18 +92,6 @@ class Settings(BaseSettings):
     EMAIL_PASSWORD: Optional[SecretStr] = None
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
-
-
-    @field_validator("ANTHROPIC_API_KEY")
-    @classmethod
-    def validate_api_key(cls, v: SecretStr, info) -> SecretStr:
-        """Garante que a chave não está vazia, exceto em desenvolvimento."""
-        val = v.get_secret_value()
-        # Se estiver em desenvolvimento, permitimos placeholder para fins de demo/build
-        if not val or val == "your_key_here":
-            logger.warning("ANTHROPIC_API_KEY não configurada ou usando placeholder. O sistema funcionará em modo limitado.")
-            return SecretStr("mock_key_for_demo")
-        return v
 
 
 @lru_cache
