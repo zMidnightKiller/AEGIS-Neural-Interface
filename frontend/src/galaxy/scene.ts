@@ -8,7 +8,6 @@ import type { NeuralNodeConfig } from './bodies';
 export function createScene() {
   const scene = new THREE.Scene();
   const bodies: NeuralNode[] = [];
-  const connections: THREE.LineSegments[] = [];
 
   // 1. Estrelas Procedurais (Fundo)
   const starGeometry = new THREE.BufferGeometry();
