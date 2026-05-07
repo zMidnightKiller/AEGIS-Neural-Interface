@@ -115,6 +115,8 @@ FORMATO DE SAÍDA:
     }}
   ]
 }}
+"""
+
 DECOMPOSITION_PROMPT = """
 Você é o Orquestrador de Decomposição do AEGIS. Sua tarefa é quebrar um objetivo complexo do usuário em uma sequência lógica de passos atômicos.
 Cada passo deve ser claro, independente e passível de execução por uma das ferramentas do sistema.
