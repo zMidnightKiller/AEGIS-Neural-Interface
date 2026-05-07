@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Terminal, Cpu, Database, Activity, Search, Send, User } from 'lucide-react';
 import MessageBubble from './components/MessageBubble';
 import ThinkingIndicator from './components/ThinkingIndicator';
-import AgentStatusPanel from './components/Panels/AgentStatusPanel';
-import HistoryPanel from './components/Panels/HistoryPanel';
 import GalaxyView from './galaxy/GalaxyView';
+import { InteractionCard } from './components/InteractionCard';
 
 interface Message {
   id: string;
@@ -137,120 +136,33 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans scanline relative overflow-hidden">
+      {/* Background Neural Network */}
       <div className="fixed inset-0 z-0 w-full h-full">
         <GalaxyView onModeChange={(m: any) => setMode(m)} />
       </div>
       
-      <div className="relative z-10 flex flex-col min-h-screen pointer-events-none">
-        <header className="h-14 border-b border-white/5 glass flex items-center justify-between px-6 pointer-events-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary/20 rounded flex items-center justify-center border border-primary/30">
-              <Cpu className={`w-5 h-5 text-primary ${status === 'online' ? 'pulse-glow' : 'opacity-40'}`} />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold tracking-widest uppercase">AEGIS <span className="text-primary">CORE</span></h1>
-            </div>
-          </div>
+      {/* Interface Layer */}
+      <div className="relative z-10 flex flex-col h-screen pointer-events-none p-8">
+        {/* Interaction Center (Bottom Left) */}
+        <div className="mt-auto pointer-events-auto">
+          <InteractionCard 
+            messages={messages}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            onSendMessage={handleSendMessage}
+            isThinking={isThinking}
+            status={status}
+            latency={latency}
+            mode={mode}
+            wsError={wsError}
+          />
+        </div>
 
-          <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-widest hidden md:flex">
-            <div>STATUS: <span className={status === 'online' ? 'text-primary' : 'text-red-500'}>{status}</span></div>
-            <div>LATENCY: <span className="text-primary">{latency}ms</span></div>
-            <div>MODE: <span className="text-accent">{mode}</span></div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setShowRightSidebar(!showRightSidebar)}
-              className={`p-2 rounded-full transition-colors ${showRightSidebar ? 'text-primary bg-primary/10' : 'text-white/60 hover:text-white'}`}
-            >
-              <Activity className="w-4 h-4" />
-            </button>
-            <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
-              <User className="w-4 h-4 text-white/60" />
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 flex overflow-hidden p-4 gap-4 pointer-events-none">
-          <aside className="w-64 flex flex-col gap-4 hidden lg:flex pointer-events-auto">
-            <AgentStatusPanel />
-            <nav className="glass rounded-lg flex-1 p-2">
-               <div className="space-y-1">
-                  {[
-                    { id: 'console', icon: <Terminal className="w-4 h-4" />, label: 'Console' },
-                    { id: 'memory', icon: <Database className="w-4 h-4" />, label: 'Memory' },
-                    { id: 'research', icon: <Search className="w-4 h-4" />, label: 'Research' },
-                  ].map((item) => (
-                    <button 
-                      key={item.id} 
-                      onClick={() => setActiveTab(item.id as any)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs transition-all ${activeTab === item.id ? 'bg-primary/10 text-primary border border-primary/20' : 'text-white/60 hover:text-white'}`}
-                    >
-                      {item.icon}
-                      <span className="tracking-wide uppercase">{item.label}</span>
-                    </button>
-                  ))}
-               </div>
-            </nav>
-          </aside>
-
-          <section className="flex-1 flex flex-col glass rounded-lg border-t border-white/10 overflow-hidden relative pointer-events-auto bg-black/20 backdrop-blur-[2px]">
-            {activeTab === 'console' ? (
-              <>
-                <div className="flex-1 p-6 overflow-y-auto space-y-6 custom-scrollbar">
-                  {messages.map((msg) => (
-                    <MessageBubble key={msg.id} {...msg} />
-                  ))}
-                  {isThinking && <ThinkingIndicator />}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Error Banner */}
-                {wsError && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 glass px-4 py-2 rounded-full border border-red-500/50 text-red-500 text-[10px] uppercase tracking-widest animate-bounce z-50">
-                     ERROR: {wsError}
-                  </div>
-                )}
-
-                <div className="p-4 border-t border-white/5 bg-black/60">
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      disabled={status !== 'online'}
-                      placeholder="Comando..."
-                      className="w-full bg-white/5 border border-white/10 rounded-lg py-3 px-4 pr-12 text-sm focus:outline-none focus:border-primary/50"
-                    />
-                    <button 
-                      onClick={() => handleSendMessage()}
-                      disabled={!inputValue.trim() || status !== 'online'}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-white/40 font-mono text-sm uppercase tracking-widest">
-                Simulated Module
-              </div>
-            )}
-          </section>
-
-          {showRightSidebar && (
-            <aside className="w-80 flex flex-col gap-4 hidden xl:flex pointer-events-auto">
-               <HistoryPanel />
-            </aside>
-          )}
-        </main>
-
-        <footer className="h-6 bg-primary/10 border-t border-primary/20 px-4 flex items-center justify-between text-[9px] font-mono tracking-[0.2em] text-primary/80 pointer-events-auto">
-          <span>ENCRYPTED_STREAM: ACTIVE</span>
-          <span>© 2026 AEGIS COGNITIVE SYSTEMS</span>
-        </footer>
+        {/* System Labels Overlay (Top Right) */}
+        <div className="absolute top-8 right-8 flex flex-col items-end space-y-1 opacity-40 pointer-events-none font-mono">
+          <div className="text-[10px] tracking-[0.3em] uppercase">Neural_Interface_v3.2</div>
+          <div className="text-[8px] tracking-[0.2em] text-cyan-500 uppercase">Aegis_Cognitive_Secure_Link</div>
+        </div>
       </div>
     </div>
   );
