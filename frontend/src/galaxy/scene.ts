@@ -38,6 +38,14 @@ export function createScene() {
   const stars = new THREE.Points(starGeometry, starMaterial);
   scene.add(stars);
 
+  // 1.1 Luzes (Necessárias para MeshStandardMaterial)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+
+  const pointLight = new THREE.PointLight(0xffffff, 1.5, 1000);
+  pointLight.position.set(0, 0, 0); // Luz vinda do Gargantua
+  scene.add(pointLight);
+
   // 2. Buraco Negro Central (Estilo Gargantua)
   const gargantua = new THREE.Group();
   gargantua.name = 'BlackHole';

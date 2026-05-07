@@ -12,7 +12,7 @@ const HistoryPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/memory/episodes?n=5')
+    fetch('http://localhost:8080/memory/episodes?n=5')
       .then(res => res.json())
       .then(data => {
         setEpisodes(data);

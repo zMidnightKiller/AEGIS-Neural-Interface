@@ -16,7 +16,7 @@ interface Message {
 }
 
 const SESSION_ID = Math.random().toString(36).substring(7);
-const WS_URL = `ws://localhost:8000/ws/${SESSION_ID}`;
+const WS_URL = `ws://localhost:8080/ws/${SESSION_ID}`;
 
 /**
  * Interface de Chat - Componente Principal AEGIS.
@@ -137,7 +137,9 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans scanline relative overflow-hidden">
-      <GalaxyView onModeChange={(m: any) => setMode(m)} />
+      <div className="absolute inset-0 z-0">
+        <GalaxyView onModeChange={(m: any) => setMode(m)} />
+      </div>
       
       <div className="absolute inset-0 flex flex-col pointer-events-none z-10">
         <header className="h-14 border-b border-white/5 glass flex items-center justify-between px-6 pointer-events-auto">

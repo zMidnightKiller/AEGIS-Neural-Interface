@@ -12,7 +12,7 @@ const AgentStatusPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/agents/status')
+    fetch('http://localhost:8080/agents/status')
       .then(res => res.json())
       .then(data => {
         setAgents(data);

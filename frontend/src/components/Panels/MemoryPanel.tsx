@@ -11,7 +11,7 @@ const MemoryPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/memory/profile')
+    fetch('http://localhost:8080/memory/profile')
       .then(res => res.json())
       .then(data => {
         setProfile(data);

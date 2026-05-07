@@ -21,4 +21,4 @@ COPY . .
 EXPOSE 8000
 
 # Comando para iniciar a API
-CMD ["uvicorn", "aegis.core.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "aegis.interfaces.api:app", "--host", "0.0.0.0", "--port", "8000"]
