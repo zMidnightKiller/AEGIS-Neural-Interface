@@ -136,12 +136,12 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans scanline relative overflow-hidden">
-      <div className="absolute inset-0 z-0">
+    <div className="min-h-screen bg-[#050505] text-white font-sans scanline relative overflow-hidden">
+      <div className="fixed inset-0 z-0 w-full h-full">
         <GalaxyView onModeChange={(m: any) => setMode(m)} />
       </div>
       
-      <div className="absolute inset-0 flex flex-col pointer-events-none z-10">
+      <div className="relative z-10 flex flex-col min-h-screen pointer-events-none">
         <header className="h-14 border-b border-white/5 glass flex items-center justify-between px-6 pointer-events-auto">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary/20 rounded flex items-center justify-center border border-primary/30">

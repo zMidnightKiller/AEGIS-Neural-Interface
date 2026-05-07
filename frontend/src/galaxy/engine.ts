@@ -35,8 +35,10 @@ export class GalaxyEngine {
       antialias: true, 
       alpha: true 
     });
+    console.log(`GalaxyEngine: Initializing with dimensions ${container.clientWidth}x${container.clientHeight}`);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.renderer.setClearColor(0x050505, 1); // Fundo quase preto, mas não zero
     this.container.appendChild(this.renderer.domElement);
 
     // Setup Camera
@@ -221,10 +223,11 @@ export class GalaxyEngine {
   }
 
   public start() {
+    console.log("GalaxyEngine: Animation cycle started");
     const animate = () => {
       this.animationId = requestAnimationFrame(animate);
       const now = this.clock.getElapsedTime();
-      const delta = this.clock.getDelta(); // delta entre frames para animações suaves
+      const delta = this.clock.getDelta(); 
       
       this.updateScene(now, this.voicePulse, this.voiceActive);
       if (this.eventsHandler) {

@@ -125,30 +125,30 @@ export function createScene() {
     opacity: 0.2
   });
 
-  const updateConnections = () => {
-    // Remove conexões antigas
-    connections.forEach(c => scene.remove(c));
-    connections.length = 0;
+  const lineGeometry = new THREE.BufferGeometry();
+  const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
+  scene.add(lineSegments);
 
+  const updateConnections = () => {
     const points = [];
     // Conectar nós próximos (Simulando rede neural)
     for (let i = 0; i < bodies.length; i++) {
+      const posI = bodies[i].mesh.position;
       for (let j = i + 1; j < bodies.length; j++) {
-        const dist = bodies[i].mesh.position.distanceTo(bodies[j].mesh.position);
-        if (dist < 180) { // Limite de conexão
-          points.push(bodies[i].mesh.position.clone());
-          points.push(bodies[j].mesh.position.clone());
+        const posJ = bodies[j].mesh.position;
+        const dist = posI.distanceTo(posJ);
+        if (dist < 180) { 
+          points.push(posI.x, posI.y, posI.z);
+          points.push(posJ.x, posJ.y, posJ.z);
         }
       }
-      // Todos conectam ao centro (Gargantua) com menor opacidade
-      points.push(bodies[i].mesh.position.clone());
-      points.push(new THREE.Vector3(0, 0, 0));
+      // Conectar ao centro (Gargantua)
+      points.push(posI.x, posI.y, posI.z);
+      points.push(0, 0, 0);
     }
 
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
-    scene.add(lineSegments);
-    connections.push(lineSegments);
+    lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+    lineGeometry.attributes.position.needsUpdate = true;
   };
 
   // 5. NebulosaProcedural
