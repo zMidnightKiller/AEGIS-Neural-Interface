@@ -5,9 +5,11 @@ import ThinkingIndicator from './ThinkingIndicator';
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'aegis';
   content: string;
   timestamp: string;
+  agentUsed?: string;
+  latencyMs?: number;
 }
 
 interface InteractionCardProps {
@@ -16,7 +18,7 @@ interface InteractionCardProps {
   setInputValue: (val: string) => void;
   onSendMessage: () => void;
   isThinking: boolean;
-  status: 'online' | 'offline' | 'connecting';
+  status: 'online' | 'offline' | 'busy';
   latency: number;
   mode: string;
   wsError: string | null;
@@ -46,7 +48,7 @@ export const InteractionCard: React.FC<InteractionCardProps> = ({
       {/* Top Telemetry Bar */}
       <div className="p-3 border-b border-white/10 flex items-center justify-between bg-cyan-500/5">
         <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-cyan-400 animate-pulse' : 'bg-red-500'}`} />
+          <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-cyan-400 animate-pulse' : status === 'busy' ? 'bg-yellow-500' : 'bg-red-500'}`} />
           <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-400/80 uppercase">
             LINK_{status.toUpperCase()}
           </span>

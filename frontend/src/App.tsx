@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal, Cpu, Database, Activity, Search, Send, User } from 'lucide-react';
-import MessageBubble from './components/MessageBubble';
-import ThinkingIndicator from './components/ThinkingIndicator';
 import GalaxyView from './galaxy/GalaxyView';
 import { InteractionCard } from './components/InteractionCard';
 
@@ -19,12 +16,11 @@ const WS_URL = `ws://localhost:8080/ws/${SESSION_ID}`;
 
 /**
  * Interface de Chat - Componente Principal AEGIS.
+ * Layout imersivo com InteractionCard no canto inferior esquerdo.
  */
 const App: React.FC = () => {
   const [status, setStatus] = useState<'online' | 'busy' | 'offline'>('offline');
   const [latency, setLatency] = useState(0);
-  const [activeTab, setActiveTab] = useState<'console' | 'memory' | 'research'>('console');
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [mode, setMode] = useState<'STANDARD' | 'SILENT' | 'ANALYSIS' | 'BRIEFING' | 'VERBOSE'>('STANDARD');
   
   const [messages, setMessages] = useState<Message[]>([
@@ -40,15 +36,6 @@ const App: React.FC = () => {
   const [wsError, setWsError] = useState<string | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isThinking]);
 
   useEffect(() => {
     connectWebSocket();
@@ -128,17 +115,11 @@ const App: React.FC = () => {
     setInputValue('');
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans scanline relative overflow-hidden">
       {/* Background Neural Network */}
       <div className="fixed inset-0 z-0 w-full h-full">
-        <GalaxyView onModeChange={(m: any) => setMode(m)} />
+        <GalaxyView onModeChange={(m: any) => setMode(m as any)} />
       </div>
       
       {/* Interface Layer */}
