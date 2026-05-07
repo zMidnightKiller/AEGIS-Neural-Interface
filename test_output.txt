@@ -1,0 +1,184 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-7.4.3, pluggy-1.6.0 -- C:\Users\luanl\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\luanl\.gemini\Helen
+configfile: pyproject.toml
+plugins: anyio-3.7.1, asyncio-0.21.1
+asyncio: mode=Mode.AUTO
+collecting ... collected 2 items
+
+tests/core/test_optimization.py::test_semantic_cache_hit PASSED          [ 50%]
+tests/core/test_optimization.py::test_context_compression_trigger FAILED [100%]
+
+================================== FAILURES ===================================
+______________________ test_context_compression_trigger _______________________
+
+self = <redis.asyncio.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    async def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self.is_connected:
+            return
+        # Track actual retry attempts for error reporting
+        actual_retry_attempts = 0
+    
+        def failure_callback(error, failure_count):
+            nonlocal actual_retry_attempts
+            actual_retry_attempts = failure_count
+            return self.disconnect(error=error, failure_count=failure_count)
+    
+        try:
+            if retry_socket_connect:
+                await self.retry.call_with_retry(
+                    lambda: self._connect(),
+                    failure_callback,
+                    with_failure_count=True,
+                )
+            else:
+>               await self._connect()
+
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\connection.py:371: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\connection.py:895: in _connect
+    reader, writer = await asyncio.open_connection(
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\streams.py:48: in open_connection
+    transport, _ = await loop.create_connection(
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:1091: in create_connection
+    raise exceptions[0]
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:1070: in create_connection
+    sock = await self._connect_sock(
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:974: in _connect_sock
+    await self.sock_connect(sock, address)
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\proactor_events.py:726: in sock_connect
+    return await self._proactor.connect(sock, address)
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:854: in _poll
+    value = callback(transferred, key, ov)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+trans = 0, key = 0, ov = <_overlapped.Overlapped object at 0x000001DD60BCA670>
+
+    def finish_connect(trans, key, ov):
+>       ov.getresult()
+E       ConnectionRefusedError: [WinError 1225] O computador remoto recusou a conexÒo de rede
+
+..\..\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:641: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+engine = <aegis.core.engine.Engine object at 0x000001DD60D18B90>
+
+    @pytest.mark.asyncio
+    async def test_context_compression_trigger(engine):
+        # Setup
+        engine.settings.ENABLE_CONTEXT_COMPRESSION = True
+        engine.settings.CONTEXT_COMPRESSION_TOKEN_LIMIT = 10 # Limite baixo para disparar fßcil
+        engine.cache.get = AsyncMock(return_value=None)
+    
+        # Mock do LLM para classificaþÒo de intenþÒo
+        engine.llm_client.messages.create = AsyncMock()
+        # Primeiro retorno: classificaþÒo de intenþÒo
+        mock_intent = MagicMock()
+        mock_intent.content = [MagicMock(text="core_engine")]
+        # Segundo retorno: resposta do core engine
+        mock_resp = MagicMock()
+        mock_resp.content = [MagicMock(text="Resposta do LLM")]
+        # Terceiro retorno (compressÒo): resumo
+        mock_summary = MagicMock()
+        mock_summary.content = [MagicMock(text="Resumo comprimido")]
+    
+        engine.llm_client.messages.create.side_effect = [mock_intent, mock_resp, mock_summary]
+    
+        user_input = UserInput(text="Texto muito longo que excede o limite de tokens", session_id="test_session")
+    
+        # Execute
+        with patch.object(Engine, "_compress_context", wraps=engine._compress_context) as mock_compress:
+>           response = await engine.process(user_input)
+
+tests\core\test_optimization.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+aegis\core\engine.py:115: in process
+    await memory.save_message("user", user_input.text)
+aegis\memory\working.py:56: in save_message
+    await client.rpush(key, json.dumps(message))
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\client.py:764: in execute_command
+    conn = self.connection or await pool.get_connection()
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\utils.py:227: in async_wrapper
+    return await func(*args, **kwargs)
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\connection.py:1448: in get_connection
+    await self.ensure_connection(connection)
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\connection.py:1489: in ensure_connection
+    await connection.connect()
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\connection.py:340: in connect
+    await self.retry.call_with_retry(
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\retry.py:81: in call_with_retry
+    raise error
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\retry.py:69: in call_with_retry
+    return await do()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.asyncio.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    async def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self.is_connected:
+            return
+        # Track actual retry attempts for error reporting
+        actual_retry_attempts = 0
+    
+        def failure_callback(error, failure_count):
+            nonlocal actual_retry_attempts
+            actual_retry_attempts = failure_count
+            return self.disconnect(error=error, failure_count=failure_count)
+    
+        try:
+            if retry_socket_connect:
+                await self.retry.call_with_retry(
+                    lambda: self._connect(),
+                    failure_callback,
+                    with_failure_count=True,
+                )
+            else:
+                await self._connect()
+        except asyncio.CancelledError:
+            raise  # in 3.7 and earlier, this is an Exception, not BaseException
+        except (socket.timeout, asyncio.TimeoutError):
+            e = TimeoutError("Timeout connecting to server")
+            await record_error_count(
+                server_address=getattr(self, "host", None),
+                server_port=getattr(self, "port", None),
+                network_peer_address=getattr(self, "host", None),
+                network_peer_port=getattr(self, "port", None),
+                error_type=e,
+                retry_attempts=actual_retry_attempts,
+                is_internal=False,
+            )
+            raise e
+        except OSError as e:
+            e = ConnectionError(self._error_message(e))
+            await record_error_count(
+                server_address=getattr(self, "host", None),
+                server_port=getattr(self, "port", None),
+                network_peer_address=getattr(self, "host", None),
+                network_peer_port=getattr(self, "port", None),
+                error_type=e,
+                retry_attempts=actual_retry_attempts,
+                is_internal=False,
+            )
+>           raise e
+E           redis.exceptions.ConnectionError: Error 22 connecting to localhost:6379. O computador remoto recusou a conexÒo de rede.
+
+..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\redis\asyncio\connection.py:397: ConnectionError
+---------------------------- Captured stdout setup ----------------------------
+2026-05-06 11:30:47 [info     ] engine.initialized             project='AEGIS AI' version=0.1.0
+---------------------------- Captured stdout call -----------------------------
+2026-05-06 11:30:51 [error    ] working_memory.retrieval_failed error='Error 22 connecting to localhost:6379. O computador remoto recusou a conexÒo de rede.' session_id=test_session
+2026-05-06 11:30:51 [debug    ] context.message_added          role=user session_id=test_session
+2026-05-06 11:30:51 [info     ] engine.compressing_context     current_tokens=11
+2026-05-06 11:30:55 [error    ] working_memory.save_failed     error='Error 22 connecting to localhost:6379. O computador remoto recusou a conexÒo de rede.' session_id=test_session
+=========================== short test summary info ===========================
+FAILED tests/core/test_optimization.py::test_context_compression_trigger - re...
+======================== 1 failed, 1 passed in 11.78s =========================

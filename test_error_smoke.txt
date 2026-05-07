@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-7.4.3, pluggy-1.6.0
+rootdir: C:\Users\luanl\.gemini\Helen
+configfile: pyproject.toml
+plugins: anyio-3.7.1, asyncio-0.21.1
+asyncio: mode=Mode.AUTO
+collected 2 items
+
+tests\smoke\test_fase1.py ..                                             [100%]
+
+============================== warnings summary ===============================
+tests/smoke/test_fase1.py::test_fase1_full_flow
+tests/smoke/test_fase1.py::test_fase1_full_flow
+tests/smoke/test_fase1.py::test_fase1_operating_modes
+  C:\Users\luanl\.gemini\Helen\aegis\agents\memory.py:95: DeprecationWarning: The model 'claude-3-sonnet-20240229' is deprecated and will reach end-of-life on July 21st, 2025.
+  Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.
+    await self.semantic.extract_entities_from_text(interaction_text)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 2 passed, 3 warnings in 17.20s ========================

@@ -1,0 +1,109 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-7.4.3, pluggy-1.6.0 -- C:\Users\luanl\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\luanl\.gemini\Helen
+configfile: pyproject.toml
+plugins: anyio-3.7.1, asyncio-0.21.1
+asyncio: mode=Mode.AUTO
+collecting ... collected 1 item
+
+tests/core/test_engine.py::TestEngine::test_engine_process_basic FAILED  [100%]
+
+================================== FAILURES ===================================
+____________________ TestEngine.test_engine_process_basic _____________________
+
+self = <test_engine.TestEngine object at 0x000001C1EC521250>
+mock_engine_deps = (<MagicMock name='get_settings()' id='1932405194640'>, <MagicMock name='WorkingMemory()' id='1932405204240'>, <MagicMock name='MemoryAgent()' id='1932405252688'>, <MagicMock name='AsyncAnthropic()' id='1932405285648'>)
+
+    async def test_engine_process_basic(self, mock_engine_deps):
+        """Garante que o processamento basico retorna uma resposta estruturada."""
+        _, mock_memory, mock_memory_agent, mock_anthropic = mock_engine_deps
+        engine = Engine()
+    
+        # Mock do classificador
+        engine._classify_intent = AsyncMock(return_value="core_engine")
+    
+        # Mock da resposta do LLM
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="Resposta mockada do AEGIS")]
+        mock_anthropic.messages.create = AsyncMock(return_value=mock_response)
+    
+        user_input = UserInput(
+            text="Ola AEGIS",
+            session_id="test_session_123",
+            mode=OperatingMode.STANDARD
+        )
+    
+>       response = await engine.process(user_input)
+
+tests\core\test_engine.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <aegis.core.engine.Engine object at 0x000001C1EC54B990>
+user_input = UserInput(text='Ola AEGIS', session_id='test_session_123', mode=<OperatingMode.STANDARD: 'STANDARD'>, attachments=[])
+
+    async def process(self, user_input: UserInput) -> AgentResponse:
+        """
+        Processa uma entrada do usuario e retorna uma resposta do agente.
+    
+        Args:
+            user_input: Objeto contendo o texto, session_id e modo de operacao.
+    
+        Returns:
+            AgentResponse estruturado.
+        """
+        start_time = time.perf_counter()
+    
+        # 0. Verificar Cache Semantico
+        if self.settings.ENABLE_SEMANTIC_CACHE:
+            cached_response = await self.cache.get(user_input.text)
+            if cached_response:
+                latency_ms = int((time.perf_counter() - start_time) * 1000)
+                return AgentResponse(
+                    text=cached_response,
+                    agent_used="semantic_cache",
+                    tools_used=[],
+                    memory_injected=False,
+                    latency_ms=latency_ms
+                )
+    
+        # 1. Inicializar Memoria e Contexto
+        memory = WorkingMemory(user_input.session_id)
+    
+        # Registro no Langfuse (Observability)
+        obs_manager.trace_event(
+            name="engine_process",
+            user_id=user_input.session_id,
+            input_data=user_input.text,
+            metadata={"mode": user_input.mode.value}
+        )
+    
+        history = await memory.get_history(n=10)
+    
+        context = Context(user_input.session_id)
+        # Reconstruir contexto a partir do historico
+        for msg in history:
+            context.add_message(msg["role"], msg["content"], msg.get("metadata"))
+    
+        # Adicionar mensagem atual do usuario
+        context.add_message("user", user_input.text, metadata={"attachments": user_input.attachments})
+    
+        # --- NOVO: COMPRESS├O DE CONTEXTO ---
+>       if self.settings.ENABLE_CONTEXT_COMPRESSION and context.total_tokens > self.settings.CONTEXT_COMPRESSION_TOKEN_LIMIT:
+E       TypeError: '>' not supported between instances of 'int' and 'MagicMock'
+
+aegis\core\engine.py:125: TypeError
+---------------------------- Captured stdout call -----------------------------
+2026-05-06 11:39:26 [info     ] engine.initialized             project='AEGIS Test' version=0.0.1
+2026-05-06 11:39:26 [debug    ] semantic_cache.checking        query='Ola AEGIS' threshold=0.92
+2026-05-06 11:39:27 [error    ] semantic_cache.get_failed      error="Error code: 401 - {'error': {'message': 'Incorrect API key provided: fake-key. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}} in query."
+2026-05-06 11:39:27 [debug    ] context.message_added          role=user session_id=test_session_123
+============================== warnings summary ===============================
+tests/core/test_engine.py::TestEngine::test_engine_process_basic
+  C:\Users\luanl\AppData\Local\Programs\Python\Python311\Lib\site-packages\chromadb\utils\embedding_functions\openai_embedding_function.py:54: DeprecationWarning: Direct api_key configuration will not be persisted. Please use environment variables via api_key_env_var for persistent storage.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/core/test_engine.py::TestEngine::test_engine_process_basic - Typ...
+======================== 1 failed, 1 warning in 4.65s =========================
