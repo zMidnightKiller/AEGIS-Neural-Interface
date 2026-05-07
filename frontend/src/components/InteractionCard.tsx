@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Mic, Activity, Terminal, Database, Search } from 'lucide-react';
+import { Send, Mic, Activity, Database } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import ThinkingIndicator from './ThinkingIndicator';
 

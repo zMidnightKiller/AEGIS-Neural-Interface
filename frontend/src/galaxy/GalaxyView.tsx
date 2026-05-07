@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GalaxyEngine } from './engine';
-import { HUD } from './hud';
 import { NodePanel } from './NodePanel';
 import type { NeuralNodeConfig } from './bodies';
 
