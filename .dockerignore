@@ -1,0 +1,16 @@
+**/.gemini
+**/.next
+**/.venv
+**/.vscode
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.git
+data/
+neo4j_data/
+chroma_data/
+frontend_legacy/
+Ralph-Loop/
+.agent
+.tmp
+.env

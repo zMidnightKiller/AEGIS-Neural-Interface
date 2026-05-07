@@ -1,13 +1,13 @@
 import React from 'react';
-import type { CelestialBodyConfig } from './bodies';
+import type { NeuralNodeConfig } from './bodies';
 
 interface NodePanelProps {
-  node: CelestialBodyConfig | null;
+  node: NeuralNodeConfig | null;
   onClose: () => void;
 }
 
 /**
- * NodePanel: Painel lateral com detalhes e métricas de um componente específico.
+ * NodePanel: Painel lateral com detalhes e métricas de um componente neural específico.
  */
 export const NodePanel: React.FC<NodePanelProps> = ({ node, onClose }) => {
   if (!node) return null;
@@ -47,11 +47,11 @@ export const NodePanel: React.FC<NodePanelProps> = ({ node, onClose }) => {
 
         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-cyan-900/30">
           <div className="space-y-1">
-            <p className="text-[10px] opacity-50 uppercase">Requisições</p>
+            <p className="text-[10px] opacity-50 uppercase">Sinapses</p>
             <p className="text-lg font-semibold">1,240</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] opacity-50 uppercase">Sucesso</p>
+            <p className="text-[10px] opacity-50 uppercase">Confiabilidade</p>
             <p className="text-lg font-semibold text-green-400">99.2%</p>
           </div>
           <div className="space-y-1">
@@ -67,8 +67,8 @@ export const NodePanel: React.FC<NodePanelProps> = ({ node, onClose }) => {
         <div className="space-y-2 pt-4 border-t border-cyan-900/30">
           <p className="text-[10px] opacity-50 uppercase">Descrição</p>
           <p className="text-sm leading-relaxed opacity-80 italic">
-            Componente ativo do sistema orquestrado pelo núcleo AEGIS. 
-            Responsável pelo processamento de dados e execução de ferramentas em regime determinístico.
+            Nó neural ativo do sistema orquestrado pelo núcleo AEGIS. 
+            Responsável pelo processamento de dados e execução em regime de hiper-consciência neural.
           </p>
         </div>
       </div>
@@ -76,7 +76,7 @@ export const NodePanel: React.FC<NodePanelProps> = ({ node, onClose }) => {
       {/* Footer / Status */}
       <div className="mt-auto pt-6 border-t border-cyan-900/30 flex items-center space-x-2">
         <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-        <span className="text-[10px] tracking-widest opacity-60 uppercase font-bold">Orbital Sync: Estável</span>
+        <span className="text-[10px] tracking-widest opacity-60 uppercase font-bold">Neural Sync: Estável</span>
       </div>
     </div>
   );
