@@ -20,7 +20,7 @@ interface MessageBubbleProps {
 
 /**
  * Componente MessageBubble para exibir mensagens no chat.
- * Suporta papeis 'user' e 'aegis' com estilos distintos.
+ * Refinado para estética mono-space e glassmorphism premium.
  */
 const MessageBubble: React.FC<MessageBubbleProps> = ({ 
   role, 
@@ -33,38 +33,45 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   return (
     <div className={cn(
-      "flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300",
+      "flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-500",
       !isAegis && "flex-row-reverse"
     )}>
-      {/* Avatar */}
+      {/* Icon Indicator */}
       <div className={cn(
-        "w-8 h-8 rounded border flex items-center justify-center shrink-0 transition-all shadow-hud",
+        "w-7 h-7 flex items-center justify-center shrink-0 border transition-all duration-500",
         isAegis 
-          ? "border-primary/30 bg-primary/10 text-primary" 
-          : "border-white/10 bg-white/5 text-white/60"
+          ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.1)]" 
+          : "border-white/10 bg-white/5 text-white/40"
       )}>
-        {isAegis ? <Cpu className="w-4 h-4" /> : <User className="w-4 h-4" />}
+        {isAegis ? <Cpu className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
       </div>
 
-      {/* Content */}
+      {/* Message Content Container */}
       <div className={cn(
-        "space-y-2 max-w-[85%]",
-        !isAegis && "items-end flex flex-col"
+        "flex flex-col gap-1.5 max-w-[88%]",
+        !isAegis && "items-end"
       )}>
-        <div className="flex items-center gap-3">
-          <p className="text-[10px] text-white/40 font-mono tracking-tighter uppercase">
-            {isAegis ? (agentUsed || 'AEGIS') : 'USER'} — {timestamp}
-          </p>
+        {/* Metadata Header */}
+        <div className="flex items-center gap-3 px-1">
+          <span className="text-[8px] font-mono tracking-[0.2em] text-white/30 uppercase">
+            {isAegis ? (agentUsed || 'Aegis_Process') : 'Authorized_User'}
+          </span>
+          <div className="w-1 h-1 rounded-full bg-white/10" />
+          <span className="text-[8px] font-mono text-white/20 uppercase">
+            {timestamp}
+          </span>
           {isAegis && latencyMs && (
-            <span className="text-[9px] text-primary/40 font-mono">{latencyMs}ms</span>
+            <span className="text-[8px] font-mono text-cyan-500/40">{latencyMs}ms</span>
           )}
         </div>
 
+        {/* Text Block */}
         <div className={cn(
-          "p-4 rounded-xl text-sm leading-relaxed text-white/90 glass border transition-all",
+          "px-4 py-3 text-[11px] font-mono leading-relaxed tracking-wide transition-all duration-300",
+          "glass border backdrop-blur-md",
           isAegis 
-            ? "rounded-tl-none border-white/10 group-hover:border-primary/20" 
-            : "rounded-tr-none border-white/10 bg-white/5 group-hover:border-white/20"
+            ? "border-white/5 text-white/80 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-white/10" 
+            : "border-cyan-500/10 text-cyan-100/90 bg-cyan-500/[0.03] group-hover:bg-cyan-500/[0.06] group-hover:border-cyan-500/20"
         )}>
           {content}
         </div>

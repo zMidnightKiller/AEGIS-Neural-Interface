@@ -62,19 +62,11 @@ const GalaxyView: React.FC<GalaxyViewProps> = ({ onModeChange }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-black">
+    <div className="relative w-full h-full overflow-hidden">
       {/* Canvas Container */}
       <div 
         ref={containerRef} 
         className="absolute inset-0 z-0 cursor-crosshair"
-      />
-
-      {/* HUD Overlay */}
-      <HUD 
-        mode={metrics.mode}
-        activeNodes={metrics.activeNodes}
-        latency={metrics.latency}
-        status={metrics.status}
       />
 
       {/* Tooltip on Hover */}
