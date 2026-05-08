@@ -2,172 +2,143 @@
 tests/smoke/test_fase1.py
 
 Smoke Test para a Fase 1 do AEGIS.
-Valida o fluxo end-to-end: Engine + Context + Working Memory + Tools.
+Valida o fluxo end-to-end local: Engine + Context + Working Memory + ResourceGuard.
 """
 import pytest
+import asyncio
+import sys
 import json
-import os
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-# Definir variaveis de ambiente ficticias
-os.environ["ANTHROPIC_API_KEY"] = "fake-key"
-os.environ["TAVILY_API_KEY"] = "fake-key"
+# Mock problematic imports BEFORE importing aegis modules
+sys.modules["llama_cpp"] = MagicMock()
+sys.modules["pynvml"] = MagicMock()
+sys.modules["psutil"] = MagicMock()
 
 from aegis.core.engine import Engine
 from aegis.core.models import UserInput, OperatingMode, AgentResponse
-from aegis.tools.base import ToolResult
+from aegis.core.resource_guard import ResourceGuard, ResourceUnsafeError
 
 @pytest.fixture
-def mock_env():
-    """Moca todas as dependências externas (Redis, Tavily, Settings, Anthropic)."""
-    with patch("aegis.core.engine.get_settings") as mock_engine_settings_fn, \
-         patch("aegis.tools.web_search.get_settings") as mock_tool_settings_fn, \
-         patch("aegis.memory.working.redis.from_url") as mock_redis_fn, \
-         patch("aegis.tools.web_search.httpx.AsyncClient") as mock_httpx_fn, \
-         patch("aegis.core.engine.AsyncAnthropic") as mock_anthropic_class, \
-         patch("aegis.core.engine.MemoryAgent") as mock_memory_agent_class, \
-         patch("aegis.agents.memory.EpisodicMemory") as mock_episodic_class, \
-         patch("aegis.agents.memory.SemanticMemory") as mock_semantic_class, \
-         patch("aegis.core.engine.SemanticCache") as mock_cache_class, \
-         patch("aegis.core.engine.PluginManager") as mock_plugin_manager_class:
+def mock_local_env():
+    """Moca o ambiente local (LLM, GPU, Redis)."""
+    with patch("aegis.core.resource_guard.pynvml"), \
+         patch("aegis.core.resource_guard.psutil"), \
+         patch("aegis.model.inference.InferenceEngineFactory.create") as mock_factory_create, \
+         patch("aegis.memory.working.redis.from_url") as mock_redis_fn:
         
-        # Setup Settings
-        mock_settings = MagicMock()
-        mock_settings.PROJECT_NAME = "AEGIS Smoke Test"
-        mock_settings.VERSION = "1.0.0"
-        mock_settings.REDIS_URL = "redis://localhost:6379"
-        mock_settings.REDIS_SESSION_TTL = 3600
-        mock_settings.CONTEXT_MAX_TOKENS = 4096
-        mock_settings.AEGIS_MODE = "STANDARD"
-        mock_settings.ANTHROPIC_API_KEY.get_secret_value.return_value = "fake-key"
-        mock_settings.TAVILY_API_KEY.get_secret_value.return_value = "fake-key"
-        mock_settings.ENABLE_SEMANTIC_CACHE = False
-        mock_settings.ENABLE_CONTEXT_COMPRESSION = False
-        mock_settings.CONTEXT_COMPRESSION_TOKEN_LIMIT = 3000
+        # Setup Mock Engine
+        mock_engine = AsyncMock()
         
-        mock_engine_settings_fn.return_value = mock_settings
-        mock_tool_settings_fn.return_value = mock_settings
+        # O gerador de tokens deve ser um AsyncIterator
+        async def mock_generate(*args, **kwargs):
+            yield "Resposta Mockada do AEGIS"
+            
+        mock_engine.generate = mock_generate
+        mock_factory_create.return_value = mock_engine
         
-        # Setup Redis
+        # Setup Redis Mock
         mock_redis = AsyncMock()
-        mock_redis.lrange.return_value = [] # Histórico vazio inicialmente
-        mock_redis.rpush.return_value = 1
-        mock_redis.expire.return_value = True
+        mock_redis.lrange.return_value = []
         mock_redis_fn.return_value = mock_redis
         
-        # Setup HTTPX (Tavily)
-        mock_client = AsyncMock()
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "results": [
-                {"title": "AEGIS Project", "url": "https://aegis.ai", "content": "A high-performance AI system."}
-            ]
-        }
-        mock_client.post.return_value = mock_response
-        mock_httpx_fn.return_value.__aenter__.return_value = mock_client
-
-        # Setup Anthropic
-        mock_anthropic = MagicMock()
-        mock_anthropic_class.return_value = mock_anthropic
-        
-        # Setup Memory Mocks for Phase 2 compatibility
-        mock_memory_agent = MagicMock()
-        mock_memory_agent.pre_process = AsyncMock(return_value="Contexto de memoria mockado")
-        mock_memory_agent.post_process = AsyncMock()
-        mock_memory_agent_class.return_value = mock_memory_agent
-        
-        mock_episodic_class.return_value = MagicMock()
-        mock_semantic_class.return_value = MagicMock()
-
-        # Mock Cache e Plugins
-        mock_cache_class.return_value = MagicMock()
-        mock_plugin_manager_class.return_value = MagicMock()
-        
         yield {
-            "settings": mock_settings,
-            "redis": mock_redis,
-            "httpx": mock_client,
-            "anthropic": mock_anthropic
+            "engine": mock_engine,
+            "redis": mock_redis
         }
 
 @pytest.mark.asyncio
-async def test_fase1_full_flow(mock_env):
-    """Valida o fluxo completo de uma requisição de pesquisa."""
+async def test_fase1_full_flow(mock_local_env):
+    """Valida o fluxo completo de uma requisição na Engine local."""
     engine = Engine()
+    await engine.initialize()
     
-    # Mock do classificador
-    engine._classify_intent = AsyncMock(return_value="research")
-    
-    session_id = "smoke-session-1"
-    
-    # 1. Primeira interação: Pesquisa
-    user_input = UserInput(
-        text="Faça uma pesquisa sobre o projeto AEGIS",
-        session_id=session_id,
-        mode=OperatingMode.STANDARD
-    )
-    
-    # Mock do ResearchAgent para evitar chamadas reais (já testado em seu próprio módulo)
-    with patch("aegis.core.engine.ResearchAgent") as mock_research_agent_class:
-        mock_research_agent = MagicMock()
-        mock_research_agent.run = AsyncMock(return_value=MagicMock(
-            success=True,
-            output="Resultado: AEGIS Project é um sistema de IA.",
-            tools_used=["web_search"]
-        ))
-        mock_research_agent_class.return_value = mock_research_agent
-        # Re-inicializar engine para pegar o mock do agente
-        engine = Engine()
-        engine._classify_intent = AsyncMock(return_value="research")
+    # Forçamos o classificador a retornar CHAT para simplificar o smoke test
+    with patch.object(engine.classifier, "classify", return_value="CHAT"):
+        user_input = UserInput(
+            text="Olá AEGIS, como você está?",
+            session_id="smoke-test-session",
+            mode=OperatingMode.STANDARD
+        )
         
         response = await engine.process(user_input)
-    
-    # Verificações
-    assert response.agent_used == "research"
-    assert "web_search" in response.tools_used
-    assert "AEGIS Project" in response.text
-    
-    # 2. Segunda interação: Contexto
-    engine._classify_intent = AsyncMock(return_value="core_engine")
-    mock_env["redis"].lrange.return_value = [
-        json.dumps({"role": "user", "content": "Faça uma pesquisa sobre o projeto AEGIS"}),
-        json.dumps({"role": "assistant", "content": response.text})
-    ]
-    
-    # Mock da resposta do LLM para core_engine
-    mock_llm_response = MagicMock()
-    mock_llm_response.content = [MagicMock(text="Eu descobri que o projeto AEGIS é focado em performance.")]
-    mock_env["anthropic"].messages.create = AsyncMock(return_value=mock_llm_response)
-    
-    user_input_2 = UserInput(
-        text="O que você descobriu?",
-        session_id=session_id,
-        mode=OperatingMode.BRIEFING
-    )
-    
-    response_2 = await engine.process(user_input_2)
-    
-    assert response_2.agent_used == "core_engine"
-    assert response_2.memory_injected is True
-    assert "descobri" in response_2.text
+        
+        # Verificações
+        assert isinstance(response, AgentResponse)
+        assert response.agent_used == "core_engine"
+        assert "Resposta Mockada" in response.text
+        assert response.latency_ms > 0
 
 @pytest.mark.asyncio
-async def test_fase1_operating_modes(mock_env):
-    """Valida se os modos de operação alteram o comportamento."""
+async def test_fase1_operating_modes(mock_local_env):
+    """Valida se os modos de operação (BRIEFING, ANALYSIS) são respeitados."""
     engine = Engine()
-    engine._classify_intent = AsyncMock(return_value="core_engine")
+    await engine.initialize()
     
-    # Mock da resposta do LLM
-    mock_llm_response = MagicMock()
-    mock_llm_response.content = [MagicMock(text="Resposta em modo ANALYSIS")]
-    mock_env["anthropic"].messages.create = AsyncMock(return_value=mock_llm_response)
+    # Precisamos capturar o prompt enviado para a engine
+    # Como mock_generate é uma função local, vamos usar um SideEffect
+    prompts_received = []
+    async def side_effect(prompt, *args, **kwargs):
+        prompts_received.append(prompt)
+        yield "Resposta"
+        
+    mock_local_env["engine"].generate = side_effect
     
-    user_input = UserInput(
-        text="Teste de modo",
-        session_id="mode-test",
-        mode=OperatingMode.ANALYSIS
-    )
+    with patch.object(engine.classifier, "classify", return_value="CHAT"):
+        # 1. Modo BRIEFING
+        user_input_brief = UserInput(
+            text="Teste briefing",
+            session_id="mode-test",
+            mode=OperatingMode.BRIEFING
+        )
+        await engine.process(user_input_brief)
+        assert any("BRIEFING" in p for p in prompts_received)
+        
+        # 2. Modo ANALYSIS
+        prompts_received.clear()
+        user_input_analysis = UserInput(
+            text="Teste analysis",
+            session_id="mode-test",
+            mode=OperatingMode.ANALYSIS
+        )
+        await engine.process(user_input_analysis)
+        assert any("ANALYSIS" in p for p in prompts_received)
+
+@pytest.mark.asyncio
+async def test_fase1_resource_guard_blocking(mock_local_env):
+    """Valida se a Engine respeita o bloqueio do ResourceGuard."""
+    engine = Engine()
+    await engine.initialize()
     
-    response = await engine.process(user_input)
-    assert "ANALYSIS" in response.text
+    guard = ResourceGuard.get_instance()
+    
+    # Simula nível STOP
+    with patch.object(guard, "check", return_value=AsyncMock(level="STOP")):
+        # Forçamos o nível internamente para o assert_safe disparar
+        guard.level = "STOP"
+        
+        user_input = UserInput(
+            text="Isso deve falhar",
+            session_id="error-test"
+        )
+        
+        response = await engine.process(user_input)
+        
+        assert "carga pesada" in response.text
+        assert response.agent_used == "resource_guard"
+        
+        # Volta para SAFE
+        guard.level = "SAFE"
+
+@pytest.mark.asyncio
+async def test_fase1_context_compression_trigger(mock_local_env):
+    """Valida se a compressão de contexto é tentada quando o limite é atingido."""
+    engine = Engine()
+    await engine.initialize()
+    
+    # Mock do Context.compress_if_needed
+    with patch("aegis.core.context.Context.compress_if_needed", new_callable=AsyncMock) as mock_compress:
+        user_input = UserInput(text="Provocar compressao", session_id="comp-test")
+        await engine.process(user_input)
+        
+        mock_compress.assert_called_once()
