@@ -35,9 +35,46 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["development", "production", "test"] = "development"
     LOG_LEVEL: str = "INFO"
 
-    # --- LLM PROVISIONING ---
+    # --- MODELO LOCAL (RTX 3060) ---
+    AEGIS_MODEL_PATH: str = "./models/mistral-7b-instruct-v0.3-q4_k_m.gguf"
+    AEGIS_INFERENCE_BACKEND: Literal["llamacpp", "ollama", "vllm"] = "llamacpp"
+    AEGIS_MODEL_NAME: str = "mistral-7b-instruct"
+    AEGIS_MAX_TOKENS: int = 2048
+    AEGIS_GPU_LAYERS: int = 28
+    AEGIS_CONTEXT_LENGTH: int = 4096
+    AEGIS_N_THREADS: int = 8
+
+    # --- APRENDIZADO ---
+    AEGIS_LEARNING_ENABLED: bool = True
+    AEGIS_FINETUNE_SCHEDULE: str = "nightly"
+    AEGIS_MIN_SAMPLES_FOR_FINETUNE: int = 30
+    AEGIS_LORA_RANK: int = 8
+    AEGIS_LORA_ALPHA: int = 16
+    AEGIS_RLHF_ENABLED: bool = True
+    AEGIS_FINETUNE_BATCH_SIZE: int = 1
+    AEGIS_GRADIENT_CHECKPOINTING: bool = True
+
+    # --- RESOURCE GUARD ---
+    RESOURCE_GUARD_ENABLED: bool = True
+    GPU_WARN_PCT: int = 80
+    GPU_PAUSE_PCT: int = 92
+    GPU_STOP_PCT: int = 96
+    CPU_WARN_PCT: int = 70
+    CPU_PAUSE_PCT: int = 85
+    RAM_WARN_GB: int = 26
+    RAM_PAUSE_GB: int = 29
+    FINETUNE_ONLY_WHEN_IDLE: bool = True
+    FINETUNE_IDLE_MINUTES: int = 30
+    MAX_CONCURRENT_EMBEDDINGS: int = 2
+    INFERENCE_PRIORITY: bool = True
+
+    # --- DIRETÓRIOS ---
+    AEGIS_DATA_DIR: str = "./data"
+    AEGIS_MODELS_DIR: str = "./models"
+    AEGIS_CHECKPOINTS_DIR: str = "./checkpoints"
+
+    # --- LLM PROVISIONING (LEGACY/FALLBACK) ---
     AEGIS_LLM_PROVIDER: Literal["anthropic", "ollama"] = "ollama"
-    AEGIS_MODEL_NAME: str = "llama3"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     # --- API KEYS ---
