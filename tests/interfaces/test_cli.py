@@ -62,12 +62,12 @@ class TestAEGISCLI:
         )
         
         cli = AEGISCLI()
-        # Mockando display_response para evitar sleeps e Rich UI nos testes
-        with patch.object(cli, 'display_response', new_callable=AsyncMock) as mock_display:
-            await cli.process_input("Olá AEGIS")
-            
-            mock_engine.process.assert_called_once()
-            args = mock_engine.process.call_args[0][0]
-            assert args.text == "Olá AEGIS"
-            assert args.session_id == cli.session_id
-            mock_display.assert_called_once()
+        # Mockando o objeto Live
+        mock_live = MagicMock()
+        
+        await cli.process_input("Olá AEGIS", mock_live)
+        
+        mock_engine.process.assert_called_once()
+        args = mock_engine.process.call_args[0][0]
+        assert args.text == "Olá AEGIS"
+        assert args.session_id == cli.session_id
