@@ -351,7 +351,7 @@ completo incluindo temperatura da GPU.
 > **Objetivo:** AEGIS lembra tudo entre sessões usando embeddings e grafos 100% locais.
 > RAG com reranking local. Zero dado enviado para fora.
 
-- ❌ Tarefa 2.1 — Pipeline de Ingestão de Documentos
+- ✅ Tarefa 2.1 — Pipeline de Ingestão de Documentos
 - ❌ Tarefa 2.2 — Memória Episódica (ChromaDB local)
 - ❌ Tarefa 2.3 — Memória Semântica (Neo4j local)
 - ❌ Tarefa 2.4 — Working Memory (Redis)
