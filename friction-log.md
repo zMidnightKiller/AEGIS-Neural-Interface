@@ -130,3 +130,20 @@ Calibrados conservadoramente para evitar crashes em operaÃ§Ãµes de contexto long
 | `bitsandbytes` | VersÃ£o deve ser compatÃ­vel com CUDA instalado | Verificar `bnb-cuda` na pÃ¡gina de releases |
 | `vLLM` | NÃ£o recomendado na 3060 â€” overhead de VRAM alto | Usar llama.cpp; migrar para vLLM ao escalar hardware |
 | `faster-whisper large-v2` | 1.5GB VRAM â€” apertado com Mistral-7B Q4 | Usar `medium` (0.9GB) na 3060 |
+
+## [2026-05-08 21:09] TAREFA 2.5 â€” RAG Reranking Skipped
+**Hardware:** RTX 3060 12GB VRAM
+**Contexto:** Busca hÃ­brida RAG.
+**Problema:** Retrieval demorou 505.63ms (>400ms).
+**SoluÃ§Ã£o:** Reranking cancelado para evitar latÃªncia excessiva.
+
+## [2026-05-08 21:10] TAREFA 2.5 — RAG Engine
+
+**Hardware:** RTX 3060 12GB VRAM / CPU
+**Modelo:** cross-encoder/ms-marco-MiniLM-L-6-v2
+**VRAM no momento:** 0GB (Forçado na CPU)
+**ResourceGuard nível:** SAFE
+**Contexto:** Implementação do Reranking do RAG.
+**Problema:** Reranking pode competir com modelo LLM por VRAM.
+**Solução:** CrossEncoder inicializado forçadamente com device='cpu' para proteger os 12GB da 3060 para inferência.
+**Impacto futuro:** Reranking na CPU introduz latência, timeout de 400ms implementado para abortar reranking e manter tempo de resposta da interface.

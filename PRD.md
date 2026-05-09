@@ -7,7 +7,7 @@
 ## ⚡ FASE ATUAL — LEIA ISTO PRIMEIRO
 
 > **Fase ativa: FASE 2 — Sistema de Memória & RAG Próprio**
-> **Próxima tarefa: Tarefa 2.1 — Pipeline de Ingestão de Documentos**
+> **Próxima tarefa: Tarefa 2.6 — MemoryAgent**
 > **Instruções: Consulte `prompt.md` §1 para os passos exatos de execução.**
 
 Não varra fases anteriores. Vá direto ao próximo ❌ na fase ativa.
@@ -20,7 +20,7 @@ Não varra fases anteriores. Vá direto ao próximo ❌ na fase ativa.
 |---|---|---|---|---|
 | 0 | Fundação de Hardware & Modelo Local | 8 | 8 | ✅ Concluída |
 | 1 | Core Engine, Personalidade & Resource Guard | 8 | 8 | ✅ Concluída |
-| 2 | Sistema de Memória & RAG Próprio | 7 | 0 | 🔵 Ativa |
+| 2 | Sistema de Memória & RAG Próprio | 7 | 5 | 🔵 Ativa |
 | 3 | Pipeline de Aprendizado Contínuo | 8 | 0 | ⚪ Aguardando |
 | 4 | Agentes & Ferramentas Locais | 7 | 0 | ⚪ Aguardando |
 | 5 | Interfaces: Web, Voz & Galaxy UI | 7 | 0 | ⚪ Aguardando |
@@ -352,10 +352,10 @@ completo incluindo temperatura da GPU.
 > RAG com reranking local. Zero dado enviado para fora.
 
 - ✅ Tarefa 2.1 — Pipeline de Ingestão de Documentos
-- ❌ Tarefa 2.2 — Memória Episódica (ChromaDB local)
-- ❌ Tarefa 2.3 — Memória Semântica (Neo4j local)
-- ❌ Tarefa 2.4 — Working Memory (Redis)
-- ❌ Tarefa 2.5 — RAG Engine: Retrieval Híbrido + Reranking CPU
+- ✅ Tarefa 2.2 — Memória Episódica (ChromaDB local)
+- ✅ Tarefa 2.3 — Memória Semântica (Neo4j local)
+- ✅ Tarefa 2.4 — Working Memory (Redis)
+- ✅ Tarefa 2.5 — RAG Engine: Retrieval Híbrido + Reranking CPU
 - ❌ Tarefa 2.6 — MemoryAgent
 - ❌ Tarefa 2.7 — Smoke Test Fase 2
 
