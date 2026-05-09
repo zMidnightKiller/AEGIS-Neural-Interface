@@ -147,3 +147,24 @@ Calibrados conservadoramente para evitar crashes em operaÃ§Ãµes de contexto long
 **Problema:** Reranking pode competir com modelo LLM por VRAM.
 **Solução:** CrossEncoder inicializado forçadamente com device='cpu' para proteger os 12GB da 3060 para inferência.
 **Impacto futuro:** Reranking na CPU introduz latência, timeout de 400ms implementado para abortar reranking e manter tempo de resposta da interface.
+
+## [2026-05-08 21:28] TAREFA-3.2 - OOM no Fine-Tuning
+**Hardware:** RTX 3060 12GB VRAM
+**Contexto:** Treino LoRA com max_seq_length=1024
+**Problema:** OutOfMemoryError durante SFTTrainer.train()
+**Causa raiz:** batch_size ou max_seq_length estourou VRAM de 12GB.
+**SoluÃ§Ã£o:** Capturado try/except com torch.cuda.empty_cache(). NecessÃ¡rio reduzir max_seq_length e tentar de novo.
+
+## [2026-05-08 21:31] TAREFA-3.3 - RLHF DPO Memory Requirements
+**Hardware:** RTX 3060 12GB VRAM
+**Contexto:** DPO Trainer com batch=1 e load_in_4bit=True
+**Problema:** DPO exige processar prompt, chosen e rejected na memÃ³ria.
+**SoluÃ§Ã£o:** Reutilizado o padrÃ£o de batch=1, gradient_checkpointing=True e rank=8 validado no Tarefa-3.2 para garantir operaÃ§Ã£o segura na 3060.
+
+## [2026-05-09 10:07] TAREFA 3.6 - Gestão de Adapters
+**Hardware:** RTX 3060 12GB VRAM
+**Modelo:** LoRA Adapters
+**VRAM no momento:** 0GB (Disk/CPU-bound)
+**Contexto:** Implementação do AdapterManager.
+**Solução:** Implementado sistema de registro e retenção (max 5) para economizar disco e VRAM.
+**Impacto futuro:** Permite rollback automático em caso de degradação de qualidade detectada pelo Evaluator.
